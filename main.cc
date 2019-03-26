@@ -3,12 +3,19 @@
  * Author: Jake Cirino
  * Purpose: Entrypoint for program to run
  *********************************/
+using namespace std;
 #include <string>
 #include <vector>
-#include <ifstream>
+#include <fstream>
+#include <iostream>
+//#include <mpi.h> TODO implement parallel
 #include <unistd.h>
-using namespace std;
+#include "password_solver.h"
 
+/**
+ * Max int digits in password
+ */
+const int max_digits = 3;
 vector<string> encoded_passwords, salts, dictionary;
 
 /**
@@ -16,7 +23,7 @@ vector<string> encoded_passwords, salts, dictionary;
  */
 vector<string> load_strings(string &filename){
     vector<string> vec;
-    ifstream file(filename);
+    ifstream file(filename.c_str());
     if(file.is_open()){
         string line;
         while(getline(file, line)){
@@ -25,6 +32,13 @@ vector<string> load_strings(string &filename){
         file.close();
     }
     return vec;
+}
+
+/**
+ * Attempts to crack a password with brute force
+ */
+string find_password(string &encoded, string &salt){
+    //
 }
 
 int main(int argc, char *argv[]){
@@ -38,8 +52,11 @@ int main(int argc, char *argv[]){
         words_filename = argv[3];
     }
 
-    encoded_passwords = load_strings(enc_filename);
-    salts = load_strings(salts_filename);
-    dictionary = load_string(words_filename);
+    vector<string> encoded_passwords = load_strings(enc_filename);
+    vector<string> salts = load_strings(salts_filename);
+    vector<string> dictionary = load_strings(words_filename);
+
+    password_solver solver(salts, encoded_passwords, dictionary);
+    //TODO
     return 1;
 }
