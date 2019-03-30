@@ -13,6 +13,7 @@ using namespace std;
 #include <unistd.h>
 #include <sstream>
 #include <iostream>
+#include <string.h>
 
 class password_solver{
 
@@ -27,9 +28,11 @@ public:
     void solve_passwords(){
         //create new vector to store results
         vector<string> passwords(encoded.size());
+        vector<bool> password_found(encoded.size()); 
         int dic_size = dictionary.size();
 
         //loop through number
+        #pragma omp parallel for
         for(int num = -1; num <= max_num; num++){
             //first word
             for(int word1i = 0; word1i < dic_size; word1i++){
@@ -69,15 +72,15 @@ public:
                             if(num_pos == 2)
                                 pass += num_string;
 
-                            //TODO do shit
-                            cout << pass << endl;
+                            //Hash permutation
+                            hash_word(passwords, password_found, salts, encoded, pass);
                         }
                     }else{
                         //there is no number, combine the words
                         string pass = word1 + word2;
 
-                        //TODO do shit
-                        cout << pass << endl;
+                        //hash permutation
+                        hash_word(passwords, password_found, salts, encoded, pass);
                     }
                 }
             }
@@ -87,6 +90,21 @@ public:
 private:
     vector<string> salts, encoded, dictionary;
     int max_num;
+
+    void hash_word(vector<string> &passwords, vector<bool> &found, vector<string> &salts, vector<string> &encoded, string word){
+        for(int i = 0; i < salts.size(); i++){
+            if(!found[i]){
+                string encoded_word = crypt(word.c_str(), salts[i].c_str());
+                if(encoded_word.compare(encoded[i]) == 0){
+                    cout << "Pass " << i+1 << " found: " << word << endl;
+                    passwords[i] = word;
+                    found[i] = 1;
+                    
+                    break;
+                }
+            }
+        }
+    }
 
     int power(int base, int exp){
         if(exp == 1)

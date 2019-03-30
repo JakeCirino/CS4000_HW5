@@ -34,13 +34,6 @@ vector<string> load_strings(string &filename){
     return vec;
 }
 
-/**
- * Attempts to crack a password with brute force
- */
-string find_password(string &encoded, string &salt){
-    //
-}
-
 int main(int argc, char *argv[]){
     //load files
     string enc_filename = "enc_passwords",
@@ -57,6 +50,7 @@ int main(int argc, char *argv[]){
     vector<string> dictionary = load_strings(words_filename);
 
     password_solver solver(salts, encoded_passwords, dictionary);
-    //TODO
+    solver.solve_passwords();
+
     return 1;
 }
