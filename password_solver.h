@@ -18,7 +18,9 @@ using namespace std;
 class password_solver{
 
 public:
-    password_solver(vector<string> &salts, vector<string> &encoded, vector<string> &dictionary, int max_digits = 3){
+    password_solver(vector<string> &salts, vector<string> &encoded, vector<string> &dictionary, int world_size, int world_rank, int max_digits = 3){
+        this->world_size = world_size;
+        this->world_rank = world_rank;
         this->salts = salts;
         this->encoded = encoded;
         this->dictionary = dictionary;
@@ -27,78 +29,37 @@ public:
 
     void solve_passwords(){
         //create new vector to store results
-        vector<string> passwords(encoded.size());
         vector<bool> password_found(encoded.size()); 
-        int dic_size = dictionary.size();
 
-        //loop through number
-        #pragma omp parallel for
-        for(int num = -1; num <= max_num; num++){
-            //first word
-            for(int word1i = 0; word1i < dic_size; word1i++){
-                string word1 = dictionary[word1i];
-                //second word, no second word at -1
-                for(int word2i = -1; word2i < dic_size; word2i++){
-                    string word2 = "";
-                    //get number position, 0 = before first, 1 = after first, 2 = after second
-                    int pos_max = 2;
-                    if(word2i == -1)
-                        pos_max = 1;
-                    else
-                        word2 = dictionary[word2i];
-                    //determine pass with/without num
-                    if(num != -1){
-                        //determine number position
-                        for(int num_pos = 0; num_pos <= pos_max; num_pos++){
-                            //complete pass
-                            string pass;
+        for(int wordi = world_rank; wordi < dictionary.size(); wordi += world_size){
+            //store word
+            string word = dictionary[wordi];
+            for(int num = 0; num <= max_num; num++){
+                //store number
+                stringstream ss;
+                ss << num;
+                string num_string = ss.str();
 
-                            //convert number to string
-                            string num_string;
-                            stringstream ss;
-                            ss << num;
-                            num_string = ss.str();
-
-                            if(num_pos == 0)
-                                pass += num_string;
-
-                            pass += word1;
-
-                            if(num_pos == 1)
-                                pass += num_string;
-
-                            pass += word2;
-
-                            if(num_pos == 2)
-                                pass += num_string;
-
-                            //Hash permutation
-                            hash_word(passwords, password_found, salts, encoded, pass);
-                        }
-                    }else{
-                        //there is no number, combine the words
-                        string pass = word1 + word2;
-
-                        //hash permutation
-                        hash_word(passwords, password_found, salts, encoded, pass);
-                    }
-                }
+                string p1 = num_string + word,
+                    p2 = word + num_string;
+                hash_word(password_found, salts, encoded, p1);
+                hash_word(password_found, salts, encoded, p2);
             }
         }
     }
 
 private:
     vector<string> salts, encoded, dictionary;
-    int max_num;
+    int max_num, world_size, world_rank;
 
-    void hash_word(vector<string> &passwords, vector<bool> &found, vector<string> &salts, vector<string> &encoded, string word){
+    void hash_word(vector<bool> &found, vector<string> &salts, vector<string> &encoded, string &word){
         for(int i = 0; i < salts.size(); i++){
             if(!found[i]){
                 string encoded_word = crypt(word.c_str(), salts[i].c_str());
                 if(encoded_word.compare(encoded[i]) == 0){
                     cout << "Pass " << i+1 << " found: " << word << endl;
-                    passwords[i] = word;
                     found[i] = 1;
+                    //TODO communicate openmpi
                     
                     break;
                 }

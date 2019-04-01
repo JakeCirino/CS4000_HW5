@@ -8,7 +8,7 @@ using namespace std;
 #include <vector>
 #include <fstream>
 #include <iostream>
-//#include <mpi.h> TODO implement parallel
+#include <mpi.h>
 #include <unistd.h>
 #include "password_solver.h"
 
@@ -35,6 +35,21 @@ vector<string> load_strings(string &filename){
 }
 
 int main(int argc, char *argv[]){
+    //init mpi
+    MPI_Init(&argc, &argv);
+
+    //get number of processes
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    //get rank of process
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+    //output number of threads for reference
+    if(world_rank == 0)
+        cout << world_size << " threads initialized" << endl;
+
     //load files
     string enc_filename = "enc_passwords",
         salts_filename = "salts",
@@ -45,12 +60,17 @@ int main(int argc, char *argv[]){
         words_filename = argv[3];
     }
 
+    //load data
     vector<string> encoded_passwords = load_strings(enc_filename);
     vector<string> salts = load_strings(salts_filename);
     vector<string> dictionary = load_strings(words_filename);
 
-    password_solver solver(salts, encoded_passwords, dictionary);
+    //solve passwords
+    password_solver solver(salts, encoded_passwords, dictionary, world_size, world_rank);
     solver.solve_passwords();
+
+    //finalize mpi
+    MPI_Finalize();
 
     return 1;
 }
