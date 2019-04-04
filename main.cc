@@ -49,6 +49,7 @@ int main(int argc, char *argv[]){
     //output number of threads for reference
     if(world_rank == 0)
         cout << world_size << " threads initialized" << endl;
+    cout << world_rank << endl;
 
     //load files
     string enc_filename = "enc_passwords",

@@ -3,4 +3,4 @@ gpp: main.cc password_solver.h
 mpi: main.cc password_solver.h
 	mpic++ main.cc password_solver.h -lcrypt
 run: main.cc password_solver.h
-	time mpirun -n 10 --hostfile hostfile ./a.out
+	time mpiexec -np 1 -host jcirino@odd31.cs.ohio.edu a.out
