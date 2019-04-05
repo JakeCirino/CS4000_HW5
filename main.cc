@@ -52,7 +52,6 @@ int main(int argc, char *argv[]){
     cout << world_rank << endl;
 
     //load files
-    /*
     string enc_filename = "enc_passwords",
         salts_filename = "salts",
         words_filename = "words";
@@ -60,16 +59,16 @@ int main(int argc, char *argv[]){
         enc_filename = argv[1];
         salts_filename = argv[2];
         words_filename = argv[3];
-    }*/
+    }
 
-    /*/load data
+    /load data
     vector<string> encoded_passwords = load_strings(enc_filename);
     vector<string> salts = load_strings(salts_filename);
-    vector<string> dictionary = load_strings(words_filename);*/
+    vector<string> dictionary = load_strings(words_filename);
 
     //solve passwords
     password_solver solver(salts, encoded_passwords, dictionary, world_size, world_rank);
-    //solver.solve_passwords();
+    solver.solve_passwords();
 
     //finalize mpi
     MPI_Finalize();
