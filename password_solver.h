@@ -28,7 +28,7 @@ public:
         max_num = power(10, max_digits)-1;
     }
 
-    string solve_passwords(){
+    void solve_passwords(){
         //create new vector to store results
         vector<bool> password_found(encoded.size()); 
 
@@ -47,13 +47,11 @@ public:
                 hash_word(password_found, salts, encoded, p2);
             }
         }
-        return output;
     }
 
 private:
     vector<string> salts, encoded, dictionary;
     int max_num, world_size, world_rank, max_passwords;
-    string output;
 
     /**
      * Hashes and compares a word for a permutation
@@ -63,10 +61,7 @@ private:
             if(!found[i]){
                 string encoded_word = crypt(word.c_str(), salts[i].c_str());
                 if(encoded_word.compare(encoded[i]) == 0){
-                    stringstream ss;
-                    ss << (i+1);
-                    output += "Pass " + ss.str() + "found: " + word + "\n";
-                    //cout << "Pass " << i+1 << " found: " << word << endl;
+                    cout << "Pass " << i+1 << " found: " << word << endl;
                     found[i] = 1;
                     
                     break;

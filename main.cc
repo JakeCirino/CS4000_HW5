@@ -68,19 +68,7 @@ int main(int argc, char *argv[]){
 
     //solve passwords
     password_solver solver(salts, encoded_passwords, dictionary, world_size, world_rank);
-    string output = solver.solve_passwords();
-
-    if(world_rank == 0){
-        //this thread receives from other threads
-        cout << output;
-        for(int i = 0; i < world_size; i++){
-            MPI_Recv(&output, 1, MPI_CHAR, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            cout << output;
-        }
-    }else{
-        //send to thread 0
-        MPI_Send(output.c_str(), 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
-    }
+    solver.solve_passwords();
 
     //finalize mpi
     MPI_Finalize();
