@@ -14,7 +14,6 @@ using namespace std;
 #include <sstream>
 #include <iostream>
 #include <string.h>
-#include <mpi.h>
 
 class password_solver{
 
@@ -29,7 +28,7 @@ public:
         max_num = power(10, max_digits)-1;
     }
 
-    void solve_passwords(){
+    string solve_passwords(){
         //create new vector to store results
         vector<bool> password_found(encoded.size()); 
 
@@ -48,18 +47,7 @@ public:
                 hash_word(password_found, salts, encoded, p2);
             }
         }
-
-        if(world_rank == 0){
-            //this thread receives from other threads
-            cout << output;
-            for(int i = 0; i < world_size; i++){
-                MPI_Recv(&output, 1, MPI_CHAR, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                cout << output;
-            }
-        }else{
-            //send to thread 0
-            MPI_SEND(&output.c_str(), 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
-        }
+        return output;
     }
 
 private:
@@ -75,7 +63,9 @@ private:
             if(!found[i]){
                 string encoded_word = crypt(word.c_str(), salts[i].c_str());
                 if(encoded_word.compare(encoded[i]) == 0){
-                    output += "Pass " + (i+1) + "found: " + word + "\n";
+                    stringstream ss;
+                    ss << (i+1);
+                    output += "Pass " + ss.str() + "found: " + word + "\n";
                     //cout << "Pass " << i+1 << " found: " << word << endl;
                     found[i] = 1;
                     

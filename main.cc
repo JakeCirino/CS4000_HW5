@@ -61,14 +61,26 @@ int main(int argc, char *argv[]){
         words_filename = argv[3];
     }
 
-    /load data
+    //load data
     vector<string> encoded_passwords = load_strings(enc_filename);
     vector<string> salts = load_strings(salts_filename);
     vector<string> dictionary = load_strings(words_filename);
 
     //solve passwords
     password_solver solver(salts, encoded_passwords, dictionary, world_size, world_rank);
-    solver.solve_passwords();
+    string output = solver.solve_passwords();
+
+    if(world_rank == 0){
+        //this thread receives from other threads
+        cout << output;
+        for(int i = 0; i < world_size; i++){
+            MPI_Recv(&output, 1, MPI_CHAR, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            cout << output;
+        }
+    }else{
+        //send to thread 0
+        MPI_Send(output.c_str(), 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+    }
 
     //finalize mpi
     MPI_Finalize();
