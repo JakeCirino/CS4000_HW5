@@ -3,7 +3,7 @@ gpp: main.cc password_solver.h
 mpi: main.cc password_solver.h
 	mpic++ main.cc password_solver.h -lcrypt
 run: main.cc password_solver.h
-	time mpiexec -np 40 --hostfile hostfile a.out
+	time mpiexec --mca btl_tcp_if_include e1000g0 -launch-agent /usr/local/bin/orted -np 40 --hostfile hostfile a.out
 ssh:
 	ssh jcirino@sp-015.cs.ohio.edu
 	ssh jcirino@sp-001.cs.ohio.edu
